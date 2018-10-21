@@ -8,12 +8,9 @@ def load_data(filename):
     x = np.loadtxt(filename, delimiter=",", skiprows=1, usecols = range(2,32), unpack=True)
     x = x.T
     classification = np.loadtxt(filename, dtype = str, delimiter=",", skiprows=1, usecols = 1, unpack=True)
-    y = np.zeros(np.shape(classification))
-    for i in range(len(y)):
-        if classification[i] == 's':
-            y[i] = 1
-        else:
-            y[i] = 0
+    classifier = lambda t: 1 if (t == 's') else 0
+    classifier = np.vectorize(classifier)
+    y = classifier(classification)
     return x, y
 
 def standardize(x):
