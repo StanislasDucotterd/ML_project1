@@ -59,3 +59,20 @@ def ridge_regression(y, tx, lambda_):
     w = np.linalg.solve(a, b)
     loss = compute_mse(y, tx, w)
     return w, loss
+
+def logistic_regression(y, tx, initial_w, max_iters, gamma):
+    """Logistic regression using gradient descent or SGD"""
+    
+    w = initial_w
+    
+    for n_iter in range(max_iters):
+        link = sigmoid(np.dot(tx, w))
+        
+        loss = y - link
+        gradient = np.dot(tx.T, error)
+        w += gradient * gamma
+        
+    return w, loss
+   
+        
+    
