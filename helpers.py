@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """some helper functions."""
 import numpy as np
+import csv
 
 
 def load_data(filename):
@@ -8,10 +9,29 @@ def load_data(filename):
     x = np.loadtxt(filename, delimiter=",", skiprows=1, usecols = range(2,32), unpack=True)
     x = x.T
     classification = np.loadtxt(filename, dtype = str, delimiter=",", skiprows=1, usecols = 1, unpack=True)
-    classifier = lambda t: 1 if (t == 's') else 0
+    classifier = lambda t: 1.0 if (t == 's') else 0.0
     classifier = np.vectorize(classifier)
     y = classifier(classification)
     return x, y
+
+def load_csv_data(data_path, sub_sample=False):
+    """Loads data and returns y (class labels), tX (features) and ids (event ids)"""
+    y = np.genfromtxt(data_path, delimiter=",", skip_header=1, dtype=str, usecols=1)
+    x = np.genfromtxt(data_path, delimiter=",", skip_header=1)
+    ids = x[:, 0].astype(np.int)
+    input_data = x[:, 2:]
+
+    # convert class labels from strings to binary (-1,1)
+    yb = np.ones(len(y))
+    yb[np.where(y=='b')] = -1
+    
+    # sub-sample
+    if sub_sample:
+        yb = yb[::50]
+        input_data = input_data[::50]
+        ids = ids[::50]
+
+    return yb, input_data, ids
 
 def standardize(x):
     """Standardize the original data set."""
