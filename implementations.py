@@ -105,11 +105,20 @@ def logistic_regression3(y, tx, initial_w, batch_size, max_iters, gamma):
     w = initial_w
     losses = []
     threshold = 1e-7
+    n_iter = 0
     
-    for y_batch, tx_batch in batch_iter(y, tx, batch_size=batch_size, num_batches=max_iters):       
+    for y_batch, tx_batch in batch_iter(y, tx, batch_size=batch_size, num_batches=max_iters):  
+        n_iter += 1
         gradient = np.dot(tx_batch.T, (sigmoid(np.squeeze(np.dot(tx_batch, w))) - y_batch))
         w -= gradient * gamma
         loss = logistic_loss(y_batch, tx_batch, w)
+        if (n_iter%10000 == 0):
+            y_ = sigmoid(np.dot(tx,w))
+            classifier = lambda t: 1.0 if (t > 0.5) else 0.0
+            classifier = np.vectorize(classifier)
+            y_ = classifier(y_)
+            ratio = 1 - sum(abs(y_ - y))/len(y)
+            print("Itération = {i}".format(i = n_iter) + ", ratio = {r}".format(r = ratio))
         losses.append(loss)
         if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
             break
@@ -124,11 +133,20 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, batch_size, max_iters, ga
     w = initial_w
     losses = []
     threshold = 1e-7
+    n_iter = 0
     
     for y_batch, tx_batch in batch_iter(y, tx, batch_size=batch_size, num_batches=max_iters):
+        n_iter += 1
         gradient = 2*lambda_*w + np.dot(tx_batch.T, (sigmoid(np.squeeze(np.dot(tx_batch, w))) - y_batch))
         w -= gradient * gamma
         loss = reg_logistic_loss(y_batch, tx_batch, w, lambda_)
+        if (n_iter%10000 == 0):
+            y_ = sigmoid(np.dot(tx,w))
+            classifier = lambda t: 1.0 if (t > 0.5) else 0.0
+            classifier = np.vectorize(classifier)
+            y_ = classifier(y_)
+            ratio = 1 - sum(abs(y_ - y))/len(y)
+            print("Itération = {i}".format(i = n_iter) + ", ratio = {r}".format(r = ratio))
         losses.append(loss)
         if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
             break

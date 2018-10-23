@@ -21,7 +21,6 @@ def logistic_loss(y, tx, w):
     """compute the cost by negative log likelihood."""
     
     eps = 1e-5
-    n_sample = len(y)
     log_likelihood = np.dot(y.T, np.log(sigmoid(np.dot(tx, w))+eps)) + np.dot((1 - y).T, np.log(1 - sigmoid(np.dot(tx, w))+eps))
     return np.squeeze(-log_likelihood)
 
