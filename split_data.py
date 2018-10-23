@@ -20,7 +20,7 @@ def split_data(x, y, ratio, seed=1):
     y_te = y[index_te]
     return x_tr, x_te, y_tr, y_te
 
-def k_fold_cross_validation(x, y, k, test_pos, seed = 1):
+def k_fold_cross_validation(x, y, k, test_pos):
     """split the data into k parts, k-1 for the training and 1 for the test"""
     
     n_sample = len(y)

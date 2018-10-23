@@ -20,8 +20,8 @@ def compute_mae(y, tx, w):
 def logistic_loss(y, tx, w):
     """compute the cost by negative log likelihood."""
     
-    eps = 1e-5
-    log_likelihood = np.dot(y.T, np.log(sigmoid(np.dot(tx, w))+eps)) + np.dot((1 - y).T, np.log(1 - sigmoid(np.dot(tx, w))+eps))
+    y_pred = sigmoid(np.dot(tx, w))
+    log_likelihood = np.dot(y.T, np.log(y_pred)) + np.dot((1 - y).T, np.log(1 - y_pred))
     return np.squeeze(-log_likelihood)
 
 def reg_logistic_loss(y, tx, w, lambda_):
