@@ -103,20 +103,16 @@ def logistic_regression3(y, tx, initial_w, batch_size, max_iters, gamma):
     """Logistic regression using gradient descent or SGD"""
     
     w = initial_w
-    best_w = initial_w
-    least_cost = 1e5
     losses = []
     threshold = 1e-10
     n_iter = 0
+    loss = 0
     
     for y_batch, tx_batch in batch_iter(y, tx, batch_size=batch_size, num_batches=max_iters):  
         n_iter += 1
         gradient = np.dot(tx_batch.T, (sigmoid(np.squeeze(np.dot(tx_batch, w))) - y_batch))
         w -= gradient * gamma
-        loss = logistic_loss(y, tx, w)
-        if loss < least_cost:
-            least_cost = loss
-            best_w = w
+        loss = logistic_loss(y_batch, tx_batch, w)
         if (n_iter%10000 == 0):
             y_ = sigmoid(np.dot(tx,w))
             classifier = lambda t: 1.0 if (t > 0.5) else 0.0
@@ -125,7 +121,7 @@ def logistic_regression3(y, tx, initial_w, batch_size, max_iters, gamma):
             ratio = 1 - sum(abs(y_ - y))/len(y)
             print("Itération = {i}".format(i = n_iter) + ", ratio = {r}".format(r = ratio) + ", cost = {c}".format(c = loss))
         
-    return best_w, least_cost
+    return w, loss
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, batch_size, max_iters, gamma):
     """Logistic regression with regularization using SGD"""
