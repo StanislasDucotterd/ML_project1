@@ -1,7 +1,7 @@
 import numpy as np
 
 def non_outlier_mean(dataset):
-    mean_vector = np.zeros(len(dataset))
+    mean_vector = np.zeros(len(dataset[0]))
     for i in range(0, len(dataset[0])):
         column_sum = 0
         n_samples = 0
