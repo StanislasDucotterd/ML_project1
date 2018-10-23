@@ -85,7 +85,7 @@ def logistic_regression2(y, tx, initial_w, max_iters, gamma):
     
     w = initial_w
     losses = []
-    threshold = 1e-8
+    threshold = 1e-10
     
     for n_iter in range(max_iters):       
         gradient = np.dot(tx.T, (sigmoid(np.dot(tx, w)) - y))
@@ -104,8 +104,9 @@ def logistic_regression3(y, tx, initial_w, batch_size, max_iters, gamma):
     
     w = initial_w
     losses = []
-    threshold = 1e-7
+    threshold = 1e-10
     n_iter = 0
+    loss = 0
     
     for y_batch, tx_batch in batch_iter(y, tx, batch_size=batch_size, num_batches=max_iters):  
         n_iter += 1
@@ -118,12 +119,7 @@ def logistic_regression3(y, tx, initial_w, batch_size, max_iters, gamma):
             classifier = np.vectorize(classifier)
             y_ = classifier(y_)
             ratio = 1 - sum(abs(y_ - y))/len(y)
-            print("Itération = {i}".format(i = n_iter) + ", ratio = {r}".format(r = ratio))
-        losses.append(loss)
-        if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
-            break
-        
-    loss = losses[-1]
+            print("Itération = {i}".format(i = n_iter) + ", ratio = {r}".format(r = ratio) + ", cost = {c}".format(c = loss))
         
     return w, loss
 
@@ -132,7 +128,7 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, batch_size, max_iters, ga
     
     w = initial_w
     losses = []
-    threshold = 1e-7
+    threshold = 1e-10
     n_iter = 0
     
     for y_batch, tx_batch in batch_iter(y, tx, batch_size=batch_size, num_batches=max_iters):
