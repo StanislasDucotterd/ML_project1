@@ -21,8 +21,7 @@ def mean_replaced_outliers(dataset, mean_vector):
 def clean_data(dataset):
     mean_vector = non_outlier_mean(dataset)
     mean_replaced_outliers(dataset, mean_vector)
-    dataset = standardize_columns(dataset)[0]
-    return dataset
+    return standardize_columns(dataset)
 
 def standardize_columns(x):
     """Standardize the original data set."""
