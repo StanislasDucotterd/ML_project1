@@ -28,3 +28,13 @@ def reg_logistic_loss(y, tx, w, lambda_):
     """compute the cost by regularization and negative log likelihood."""
     
     return logistic_loss(y, tx, w) + np.squeeze(lambda_*np.dot(w.T, w))
+
+def prediction_accuracy(y, y_pred):
+    """compute the proportion of correct prediction"""
+    
+    classifier = lambda t: 1.0 if (t > 0.5) else 0.0
+    classifier = np.vectorize(classifier)
+    y_pred = classifier(y_pred)
+    error = abs(y - y_pred)
+    accuracy = 1 - sum(error) / len(error)
+    return accuracy
