@@ -4,6 +4,7 @@ import numpy as np
 from costs import *
 from compute_gradient import *
 from helpers import *
+from build_polynomial import *
 
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
@@ -123,6 +124,35 @@ def logistic_regression3(y, tx, initial_w, max_iters, gamma):
         
     return w, loss
 
+def logistic_regression4(y, tx, initial_w, max_iters, gamma, batch_size=1):
+    """Logistic regression using gradient descent or SGD"""
+    
+    w = initial_w
+    threshold = 1e-10
+    n_iter = 0
+    
+    classifier = lambda t: 1.0 if (t > 0.5) else 0.0
+    classifier = np.vectorize(classifier)
+    
+    batches = batch_iter2(y, tx, batch_size=batch_size, num_batches=max_iters)
+    
+    for y_batch, tx_batch in batches:  
+        n_iter += 1
+        
+        batch_w = np.dot(tx_batch, w)
+        sig = sigmoid(np.squeeze(batch_w))
+        
+        error = y_batch - sig
+        gradient = -np.dot(tx_batch.T, error)/len(y_batch)
+        w -= gradient * gamma/np.sqrt(n_iter)
+        if (n_iter%10000 == 0):
+            y_ = sigmoid(np.dot(tx,w))
+            y_ = classifier(y_)
+            ratio = 1 - sum(abs(y_ - y))/len(y)
+            print("Itération = {i}".format(i = n_iter) + ", ratio = {r}".format(r = ratio))
+        
+    return w
+
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     """Logistic regression with regularization using SGD"""
     
@@ -145,3 +175,22 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
             print("Itération = {i}".format(i = n_iter) + ", ratio = {r}".format(r = ratio))
     
     return w, loss
+
+def train_category(x, y, columns, iterations, lambda_, gamma, batch_size):
+    x, mean_x, std_x = standardize(x)
+    tx = np.c_[np.ones(len(x)), x]
+    tx_poly = build_poly_all_features(tx, 2)
+    
+    w = logistic_regression4(y, tx_poly, np.zeros((2*columns +1,)), iterations, gamma, batch_size=batch_size)
+    
+    return w, mean_x, std_x
+
+def test_category(x_test, mean_x, std_x, ids, w, classifier):
+    x_test = (x_test - mean_x) / std_x
+    x_test = np.c_[np.ones(len(x_test)), x_test]
+    x_test_poly = build_poly_all_features(x_test, 2)
+    y_odds = sigmoid(np.dot(x_test_poly, w))
+    y_predic = classifier(y_odds)
+    y_id = np.c_[ids, y_predic]
+    
+    return y_id

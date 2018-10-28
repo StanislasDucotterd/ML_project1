@@ -14,6 +14,7 @@ y, x, ids = load_csv_data('train.csv', sub_sample=False)
 classifier = lambda t: 1.0 if (t == 1.0) else 0.0
 classifier = np.vectorize(classifier)
 y = classifier(y)
+
 tx, mean_x, std_x = clean_data(x)
 tx = np.c_[np.ones(len(y)), tx]
 
