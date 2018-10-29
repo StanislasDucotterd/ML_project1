@@ -128,7 +128,7 @@ def logistic_regression3(y, tx, initial_w, max_iters, gamma):
         
     return w, loss, pred_accuracy
 
-def logistic_regression4(y, tx, initial_w, max_iters, gamma, batch_size=1):
+def logistic_regression4(y, tx, initial_w, max_iters, gamma, lambda_=0.0, batch_size=1, logs=False, shuffle=False):
     """Logistic regression using gradient descent or SGD"""
     
     w = initial_w
@@ -138,18 +138,19 @@ def logistic_regression4(y, tx, initial_w, max_iters, gamma, batch_size=1):
     classifier = lambda t: 1.0 if (t > 0.5) else 0.0
     classifier = np.vectorize(classifier)
     
-    batches = batch_iter2(y, tx, batch_size=batch_size, num_batches=max_iters)
+    batches = batch_iter2(y, tx, batch_size, max_iters, shuffle)
     
-    for y_batch, tx_batch in batches:  
+    for y_batch, tx_batch in batches:
         n_iter += 1
         
         batch_w = np.dot(tx_batch, w)
         sig = sigmoid(np.squeeze(batch_w))
+        reg = 2 * lambda_ * w
         
         error = y_batch - sig
-        gradient = -np.dot(tx_batch.T, error)/len(y_batch)
+        gradient = reg - np.dot(tx_batch.T, error)/len(y_batch)
         w -= gradient * gamma/np.sqrt(n_iter)
-        if (n_iter%10000 == 0):
+        if (logs and n_iter%10000 == 0):
             y_ = sigmoid(np.dot(tx,w))
             y_ = classifier(y_)
             ratio = 1 - sum(abs(y_ - y))/len(y)
@@ -180,19 +181,19 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     
     return w, loss
 
-def train_category(x, y, columns, iterations, lambda_, gamma, batch_size):
+def train_category(x, y, columns, iterations, gamma, lambda_, batch_size, poly_deg, logs=False, shuffle=False):
     x, mean_x, std_x = standardize(x)
     tx = np.c_[np.ones(len(x)), x]
-    tx_poly = build_poly_all_features(tx, 2)
+    tx_poly = build_poly_all_features(tx, poly_deg)
     
-    w = logistic_regression4(y, tx_poly, np.zeros((2*columns +1,)), iterations, gamma, batch_size=batch_size)
+    w = logistic_regression4(y, tx_poly, np.zeros((poly_deg * columns + 1,)), iterations, gamma, lambda_, batch_size, logs, shuffle)
     
     return w, mean_x, std_x
 
-def test_category(x_test, mean_x, std_x, ids, w, classifier):
+def test_category(x_test, mean_x, std_x, ids, w, classifier, poly_deg):
     x_test = (x_test - mean_x) / std_x
     x_test = np.c_[np.ones(len(x_test)), x_test]
-    x_test_poly = build_poly_all_features(x_test, 2)
+    x_test_poly = build_poly_all_features(x_test, poly_deg)
     y_odds = sigmoid(np.dot(x_test_poly, w))
     y_predic = classifier(y_odds)
     y_id = np.c_[ids, y_predic]
