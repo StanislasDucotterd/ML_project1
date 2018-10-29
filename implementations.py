@@ -107,6 +107,7 @@ def logistic_regression3(y, tx, initial_w, max_iters, gamma):
     threshold = 1e-10
     n_iter = 0
     loss = 0
+    pred_accuracy = 0
     
     for y_batch, tx_batch in batch_iter(y, tx, batch_size = 1, num_batches=max_iters):  
         n_iter += 1
@@ -120,8 +121,11 @@ def logistic_regression3(y, tx, initial_w, max_iters, gamma):
             y_ = classifier(y_)
             ratio = 1 - sum(abs(y_ - y))/len(y)
             print("Itération = {i}".format(i = n_iter) + ", ratio = {r}".format(r = ratio) + ", cost = {c}".format(c = loss))
+            if (abs(pred_accuracy - ratio) < 1e-6):
+                break
+            pred_accuracy = ratio
         
-    return w, loss
+    return w, loss, pred_accuracy
 
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     """Logistic regression with regularization using SGD"""
