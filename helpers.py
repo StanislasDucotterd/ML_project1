@@ -3,6 +3,7 @@
 import numpy as np
 import csv
 import matplotlib.pyplot as plt
+from implementations import *
 
 
 def load_data(filename):
