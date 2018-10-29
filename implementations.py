@@ -128,7 +128,7 @@ def logistic_regression3(y, tx, initial_w, max_iters, gamma):
         
     return w, loss, pred_accuracy
 
-def logistic_regression4(y, tx, initial_w, max_iters, gamma, lambda_=0.0, batch_size=1, logs=False, shuffle=False):
+def logistic_regression4(y, tx, initial_w, max_iters, gamma, step_reduction, lambda_=0.0, batch_size=1, logs=False, shuffle=False):
     """Logistic regression using gradient descent or SGD"""
     
     w = initial_w
@@ -149,7 +149,7 @@ def logistic_regression4(y, tx, initial_w, max_iters, gamma, lambda_=0.0, batch_
         
         error = y_batch - sig
         gradient = reg - np.dot(tx_batch.T, error)/len(y_batch)
-        w -= gradient * gamma/np.sqrt(n_iter)
+        w -= gradient * gamma / step_reduction(n_iter)
         if (logs and n_iter%10000 == 0):
             y_ = sigmoid(np.dot(tx,w))
             y_ = classifier(y_)
@@ -181,12 +181,12 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     
     return w, loss
 
-def train_category(x, y, columns, iterations, gamma, lambda_, batch_size, poly_deg, logs=False, shuffle=False):
+def train_category(x, y, columns, iterations, gamma, step_reduction, lambda_, batch_size, poly_deg, logs=False, shuffle=False):
     x, mean_x, std_x = standardize(x)
     tx = np.c_[np.ones(len(x)), x]
     tx_poly = build_poly_all_features(tx, poly_deg)
     
-    w = logistic_regression4(y, tx_poly, np.zeros((poly_deg * columns + 1,)), iterations, gamma, lambda_, batch_size, logs, shuffle)
+    w = logistic_regression4(y, tx_poly, np.zeros((poly_deg * columns + 1,)), iterations, gamma, step_reduction, lambda_, batch_size, logs, shuffle)
     
     return w, mean_x, std_x
 
