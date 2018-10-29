@@ -19,9 +19,11 @@ def compute_mae(y, tx, w):
 
 def logistic_loss(y, tx, w):
     """compute the cost by negative log likelihood."""
-    
-    y_pred = sigmoid(np.dot(tx, w))
-    log_likelihood = np.dot(y.T, np.log(y_pred)) + np.dot((1 - y).T, np.log(1 - y_pred))
+    """we creat the function handle_big_values in order to avoid to divide by zero error"""
+    y_pred = np.dot(tx, w)
+    handle_big_values = lambda t: np.log(sigmoid(t)) if (t > -709.0) else t
+    handle_big_values = np.vectorize(handle_big_values)
+    log_likelihood = np.dot(y.T, handle_big_values(y_pred)) + np.dot((1 - y).T, handle_big_values(1 - y_pred))
     return np.squeeze(-log_likelihood)
 
 def reg_logistic_loss(y, tx, w, lambda_):
