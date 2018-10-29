@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Function used to compute the loss."""
 import numpy as np
-from helpers import sigmoid
+from helpers import *
 
 def compute_mse(y, tx, w):
     """Calculate the loss using mse"""
