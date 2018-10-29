@@ -1,10 +1,90 @@
 # -*- coding: utf-8 -*-
 """Implementation of the 6 functions"""
 import numpy as np
-from costs import *
-from compute_gradient import *
-from helpers import *
-from build_polynomial import *
+
+
+def compute_error(y, tx, w):
+    """Calculate the error vector"""
+    return y - np.dot(tx, w)
+
+
+def compute_mse(y, tx, w):
+    """Calculate the loss using MSE"""
+    e = compute_error(y, tx, w)
+    return (e**2).mean()/2
+
+
+def compute_gradient(y, tx, w):
+    """Compute the gradient."""
+    n_samples = len(y)
+    error = compute_error(y, tx, w)
+    return (-1 / n_samples) * tx.T.dot(error)
+
+
+def batch_iter(y, tx, batch_size, num_batches=1, shuffle=True):
+    """
+    Generate a minibatch iterator for a dataset.
+    Takes as input two iterables (here the output desired values 'y' and the input data 'tx')
+    Outputs an iterator which gives mini-batches of `batch_size` matching elements from `y` and `tx`.
+    Data can be randomly shuffled to avoid ordering in the original data messing with the randomness of the minibatches.
+    Example of use :
+    for minibatch_y, minibatch_tx in batch_iter(y, tx, 32):
+        <DO-SOMETHING>
+    """
+    data_size = len(y)
+
+    if shuffle:
+        shuffle_indices = np.random.permutation(np.arange(data_size))
+        shuffled_y = y[shuffle_indices]
+        shuffled_tx = tx[shuffle_indices]
+    else:
+        shuffled_y = y
+        shuffled_tx = tx
+    for batch_num in range(num_batches):
+        start_index = batch_num * batch_size
+        end_index = min((batch_num + 1) * batch_size, data_size)
+        if start_index != end_index or 1:
+            yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
+
+
+def sigmoid(z):
+    return 1 / (1 + np.exp(-z))
+
+
+def logistic_loss(y, tx, w):
+    """Compute the cost by negative log likelihood."""
+
+
+    y_pred = sigmoid(np.dot(tx, w))
+
+    for i in range(len(y_pred)):
+        if y_pred[i] == 0.0:
+            y_pred[i] = 10**(-9)
+        elif y_pred[i] == 1.0:
+            y_pred[i] = 1 - 10**(-9)
+
+    diff_log = np.log(1 - y_pred)
+    diff_t = (1 - y).T
+    pred_log = np.log(y_pred)
+
+    dot1 = np.dot(y.T, pred_log)
+    dot2 = np.dot(diff_t, diff_log)
+    log_likelihood = dot1 + dot2
+
+    #loss = 0
+    #for n in range(len(tx)):
+    #    loss += y[n] * np.log(sigmoid(tx[n].T.dot(w))) + (1 - y[n]) * np.log(1 - sigmoid(tx[n].T.dot(w)))
+
+    #return -loss
+
+    return np.squeeze(-log_likelihood)
+
+
+def reg_logistic_loss(y, tx, w, lambda_):
+    """compute the cost by regularization and negative log likelihood."""
+
+    return logistic_loss(y, tx, w) + np.squeeze(lambda_ * np.dot(w.T, w))
+
 
 def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     """Gradient descent algorithm."""
@@ -14,8 +94,8 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
     threshold = 1e-8
     
     for n_iter in range(max_iters):
-        gradient = compute_gradient(y, tx, w)[0]
-        w = w - gamma*gradient # Update w by a fraction of the gradient
+        gradient = compute_gradient(y, tx, w)
+        w = w - gamma * gradient  # Update w by a fraction of the gradient
         loss = compute_mse(y, tx, w)  
         losses.append(loss)
         
@@ -23,73 +103,66 @@ def least_squares_GD(y, tx, initial_w, max_iters, gamma):
         if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
             break
 
-    return w, losses[-1]
+    return w, loss
 
-def least_squares_SGD(y, tx, initial_w, batch_size, max_iters, gamma):
+
+def least_squares_SGD(y, tx, initial_w, max_iters, gamma):
     """Stochastic gradient descent."""
 
     w = initial_w
     
-    for y_batch, tx_batch in batch_iter(y, tx, batch_size=batch_size, num_batches=max_iters):
-        gradient = compute_gradient(y_batch, tx_batch, w)[0] # Compute the gradient with only a batch of data
-        w = w - gamma * gradient # Update w with the stochastic gradient
-            
+    for y_batch, tx_batch in batch_iter(y, tx, 1, max_iters):
+        gradient = compute_gradient(y_batch, tx_batch, w)  # Compute the gradient with only a batch of data
+        w = w - gamma * gradient  # Update w with the stochastic gradient
+
     loss = compute_mse(y, tx, w)
 
     return w, loss
 
+
 def least_squares(y, tx): 
-    """calculate the least squares solution."""
-    
+    """Calculate the least squares solution."""
+
     a = tx.T.dot(tx)
     b = tx.T.dot(y)
     w = np.linalg.solve(a, b)
     loss = compute_mse(y, tx, w)
+
     return w, loss
 
+
 def ridge_regression(y, tx, lambda_):
-    """implement ridge regression."""
+    """Calculate the ridge regression solution"""
     
     n_sample = len(y)
-    I = 2*n_sample*lambda_*np.identity(np.shape(tx)[1])
+    I = 2 * n_sample * lambda_ * np.identity(np.shape(tx)[1])
     a = np.dot(tx.T, tx) + I
     b = np.dot(tx.T, y)
     w = np.linalg.solve(a, b)
     loss = compute_mse(y, tx, w)
+
     return w, loss
+
 
 def logistic_regression(y, tx, initial_w, max_iters, gamma):
     """Logistic regression using gradient descent or SGD"""
-    
-    w = initial_w
-    
-    for n_iter in range(max_iters):
-        link = sigmoid(np.dot(tx, w))
-        
-        loss = y - link
-        gradient = np.dot(tx.T, error)
-        w += gradient * gamma
-        
-    return w, loss
 
-def logistic_regression2(y, tx, initial_w, max_iters, gamma):
-    """Logistic regression using gradient descent or SGD"""
-    
     w = initial_w
     losses = []
     threshold = 1e-10
-    
-    for n_iter in range(max_iters):       
+
+    for n_iter in range(max_iters):
         gradient = np.dot(tx.T, (sigmoid(np.dot(tx, w)) - y))
         w -= gradient * gamma
         loss = logistic_loss(y, tx, w)
         losses.append(loss)
         if len(losses) > 1 and np.abs(losses[-1] - losses[-2]) < threshold:
             break
-        
+
     loss = losses[-1]
-        
+
     return w, loss
+
 
 def logistic_regression3(y, tx, initial_w, max_iters, gamma):
     """Logistic regression using gradient descent or SGD"""
@@ -118,6 +191,7 @@ def logistic_regression3(y, tx, initial_w, max_iters, gamma):
             pred_accuracy = ratio
         
     return w, loss, pred_accuracy
+
 
 def logistic_regression4(y, tx, initial_w, max_iters, gamma, step_reduction, lambda_=0.0, batch_size=1, logs=False, shuffle=False):
     """Logistic regression using gradient descent or SGD"""
@@ -148,6 +222,7 @@ def logistic_regression4(y, tx, initial_w, max_iters, gamma, step_reduction, lam
         
     return w
 
+
 def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
     """Logistic regression with regularization using SGD"""
     
@@ -170,23 +245,3 @@ def reg_logistic_regression(y, tx, lambda_, initial_w, max_iters, gamma):
             print("Itération = {i}".format(i = n_iter) + ", ratio = {r}".format(r = ratio), end="\r")
     
     return w, loss
-
-def train_category(x, y, columns, iterations, gamma, step_reduction, lambda_, batch_size, poly_deg, logs=False, shuffle=False):
-    x, mean_x, std_x = standardize(x)
-    tx = np.c_[np.ones(len(x)), x]
-    tx_poly = build_poly_all_features(tx, poly_deg)
-    initial_w = np.zeros(poly_deg * columns + 1,)
-    
-    w = logistic_regression4(y, tx_poly, initial_w, iterations, gamma, step_reduction, lambda_, batch_size, logs, shuffle)
-    
-    return w, mean_x, std_x
-
-def test_category(x_test, mean_x, std_x, ids, w, classifier, poly_deg):
-    x_test = (x_test - mean_x) / std_x
-    x_test = np.c_[np.ones(len(x_test)), x_test]
-    x_test_poly = build_poly_all_features(x_test, poly_deg)
-    y_odds = sigmoid(np.dot(x_test_poly, w))
-    y_predic = classifier(y_odds)
-    y_id = np.c_[ids, y_predic]
-    
-    return y_id
