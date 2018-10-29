@@ -102,7 +102,7 @@ def batch_iter2(y, tx, batch_size, num_batches=1, shuffle=True):
         yield shuffled_y[start_index:end_index], shuffled_tx[start_index:end_index]
 
 def sigmoid(z):
-    return 1 / (1 + np.exp(-z))
+    return 1.0 / (1.0 + np.exp(-z))
 
 def create_csv_submission(ids, y_pred, name):
     """
