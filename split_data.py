@@ -23,10 +23,8 @@ def split_data(x, y, ratio, seed=1):
 def k_fold_cross_validation(x, y, k, test_pos):
     """split the data into k parts, k-1 for the training and 1 for the test"""
     
-    n_sample = len(y)
-    if (n_sample%k != 0):
-        raise ValueError('k does not divide the number of samples')
-    elif (test_pos > k or test_pos < 1):
+    n_sample = np.shape(x)[0]
+    if (test_pos > k or test_pos < 1):
         raise ValueError('test_pos is not in {1,...,k}')
     else:
         n_subsample = n_sample // k
