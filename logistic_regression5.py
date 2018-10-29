@@ -20,6 +20,6 @@ def logistic_regression5(y, tx, initial_w, max_iters, gamma):
     classifier = np.vectorize(classifier)
     y_ = classifier(y_)
     ratio = 1 - sum(abs(y_ - y))/len(y)
-    loss = logistic_loss(y_batch, tx_batch, w)
+    loss = logistic_loss(y, tx, w)
         
     return w, loss, ratio
